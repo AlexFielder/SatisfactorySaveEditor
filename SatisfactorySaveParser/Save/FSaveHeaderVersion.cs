@@ -1,6 +1,6 @@
 ﻿namespace SatisfactorySaveParser.Save
 {
-    public enum SaveHeaderVersion
+    public enum FSaveHeaderVersion
     {
         // First version
         InitialVersion = 0,

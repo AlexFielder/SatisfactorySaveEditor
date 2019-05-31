@@ -1,6 +1,9 @@
-﻿using NLog;
-using SatisfactorySaveParser.Exceptions;
+﻿using System;
 using System.IO;
+
+using NLog;
+
+using SatisfactorySaveParser.Exceptions;
 
 namespace SatisfactorySaveParser.Save
 {
@@ -12,18 +15,21 @@ namespace SatisfactorySaveParser.Save
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
+        private ESessionVisibility sessionVisibility;
+
+        /// <summary>
+        ///     Header version number
+        /// </summary>
+        public FSaveHeaderVersion HeaderVersion { get; set; }
+
         /// <summary>
         ///     Save version number
-        /// </summary>
-        public SaveHeaderVersion HeaderVersion { get; set; }
-        /// <summary>
-        ///     Save build (feature) number
         /// </summary>
         public FSaveCustomVersion SaveVersion { get; set; }
 
         /// <summary>
-        ///     Unknown magic int
-        ///     Seems to always be 66297
+        ///     Save build number 
+        ///     Should indicate the build of the game that generated this save, but is currently always 66297
         /// </summary>
         public int BuildVersion { get; set; }
 
@@ -46,12 +52,38 @@ namespace SatisfactorySaveParser.Save
         ///     Amount of seconds spent in this save
         /// </summary>
         public int PlayDuration { get; set; }
+
         /// <summary>
         ///     Unix timestamp of when the save was saved
         /// </summary>
         public long SaveDateTime { get; set; }
 
-        public ESessionVisibility SessionVisibility { get; set; }
+        /// <summary>
+        ///     The session visibility of the game
+        ///     Only valid for saves with HeaderVersion >= AddedSessionVisibility
+        /// </summary>
+        public ESessionVisibility SessionVisibility
+        {
+            get
+            {
+                if (!SupportsSessionVisibility)
+                    throw new InvalidOperationException($"{nameof(SessionVisibility)} is not supported for this save version");
+
+                return sessionVisibility;
+            }
+            set
+            {
+                if (!SupportsSessionVisibility)
+                    throw new InvalidOperationException($"{nameof(SessionVisibility)} is not supported for this save version");
+
+                sessionVisibility = value;
+            }
+        }
+
+        /// <summary>
+        ///     Helper property that indicates if this save header supports SessionVisibility
+        /// </summary>
+        public bool SupportsSessionVisibility => HeaderVersion >= FSaveHeaderVersion.AddedSessionVisibility;
 
         public void Serialize(BinaryWriter writer)
         {
@@ -66,16 +98,25 @@ namespace SatisfactorySaveParser.Save
             writer.Write(PlayDuration);
             writer.Write(SaveDateTime);
 
-            if (HeaderVersion >= SaveHeaderVersion.AddedSessionVisibility)
+            if (SupportsSessionVisibility)
                 writer.Write((byte)SessionVisibility);
         }
 
         public static FSaveHeader Parse(BinaryReader reader)
         {
+            var headerVersion = (FSaveHeaderVersion)reader.ReadInt32();
+            var saveVersion = (FSaveCustomVersion)reader.ReadInt32();
+
+            if (headerVersion > FSaveHeaderVersion.LatestVersion)
+                throw new UnsupportedHeaderVersionException(headerVersion);
+
+            if (saveVersion > FSaveCustomVersion.LatestVersion)
+                throw new UnsupportedSaveVersionException(saveVersion);
+
             var header = new FSaveHeader
             {
-                HeaderVersion = (SaveHeaderVersion)reader.ReadInt32(),
-                SaveVersion = (FSaveCustomVersion)reader.ReadInt32(),
+                HeaderVersion = headerVersion,
+                SaveVersion = saveVersion,
                 BuildVersion = reader.ReadInt32(),
 
                 MapName = reader.ReadLengthPrefixedString(),
@@ -86,16 +127,15 @@ namespace SatisfactorySaveParser.Save
                 SaveDateTime = reader.ReadInt64()
             };
 
-            log.Debug($"Read save header: Version={header.HeaderVersion}, Build={(int)header.SaveVersion}, Magic={header.BuildVersion}, MapName={header.MapName}, MapOpts={header.MapOptions}, Session={header.SessionName}, PlayTime={header.PlayDuration}, SaveTime={header.SaveDateTime}");
-
-            if (header.HeaderVersion > SaveHeaderVersion.LatestVersion)
-                throw new UnknownSaveVersionException(header.HeaderVersion);
-
-            if (header.SaveVersion < FSaveCustomVersion.WireSpanFromConnnectionComponents || header.SaveVersion > FSaveCustomVersion.LatestVersion)
-                throw new UnknownBuildVersionException(header.SaveVersion);
-
-            if (header.HeaderVersion >= SaveHeaderVersion.AddedSessionVisibility)
+            if (header.SupportsSessionVisibility)
+            {
                 header.SessionVisibility = (ESessionVisibility)reader.ReadByte();
+                log.Debug($"Read save header: HeaderVersion={header.HeaderVersion}, SaveVersion={(int)header.SaveVersion}, BuildVersion={header.BuildVersion}, MapName={header.MapName}, MapOpts={header.MapOptions}, Session={header.SessionName}, PlayTime={header.PlayDuration}, SaveTime={header.SaveDateTime}, Visibility={header.SessionVisibility}");
+            }
+            else
+            {
+                log.Debug($"Read save header: HeaderVersion={header.HeaderVersion}, SaveVersion={(int)header.SaveVersion}, BuildVersion={header.BuildVersion}, MapName={header.MapName}, MapOpts={header.MapOptions}, Session={header.SessionName}, PlayTime={header.PlayDuration}, SaveTime={header.SaveDateTime}");
+            }
 
             return header;
         }

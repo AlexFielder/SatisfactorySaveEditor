@@ -13,7 +13,7 @@ namespace SatisfactorySaveEditor.Model
         private long saveDateTime;
         private ESessionVisibility sessionVisibility;
 
-        public SaveHeaderVersion HeaderVersion => model.HeaderVersion;
+        public FSaveHeaderVersion HeaderVersion => model.HeaderVersion;
 
         public FSaveCustomVersion SaveVersion => model.SaveVersion;
 
@@ -41,7 +41,7 @@ namespace SatisfactorySaveEditor.Model
             set { Set(() => PlayDuration, ref playDuration, value); }
         }
 
-        public bool HasSessionVisibility => HeaderVersion >= SaveHeaderVersion.AddedSessionVisibility;
+        public bool HasSessionVisibility => HeaderVersion >= FSaveHeaderVersion.AddedSessionVisibility;
 
         public ESessionVisibility SessionVisibility
         {

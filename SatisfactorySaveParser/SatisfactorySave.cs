@@ -1,11 +1,12 @@
-﻿using NLog;
-using SatisfactorySaveParser.Save;
-using SatisfactorySaveParser.Structures;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+
+using NLog;
+using SatisfactorySaveParser.Save;
+using SatisfactorySaveParser.Structures;
 
 namespace SatisfactorySaveParser
 {
