@@ -1,7 +1,8 @@
 ﻿using NLog;
+using SatisfactorySaveParser.Game;
 using System.IO;
 
-namespace SatisfactorySaveParser
+namespace SatisfactorySaveParser.Game
 {
     /// <summary>
     ///     Engine class: FObjectSaveHeader

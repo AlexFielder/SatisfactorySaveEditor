@@ -1,7 +1,6 @@
 using System;
 using GalaSoft.MvvmLight;
 using SatisfactorySaveEditor.Model;
-using SatisfactorySaveParser;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Globalization;
@@ -17,12 +16,14 @@ using System.Threading.Tasks;
 using GongSolutions.Wpf.DragDrop;
 using SatisfactorySaveEditor.Cheats;
 using SatisfactorySaveEditor.View;
+using SatisfactorySaveParser.Save;
+using SatisfactorySaveParser.Game;
 
 namespace SatisfactorySaveEditor.ViewModel
 {
     public class MainViewModel : ViewModelBase, IDropTarget
     {
-        private SatisfactorySave saveGame;
+        private FGSaveSession saveGame;
         private SaveObjectModel rootItem;
         private SaveObjectModel selectedItem;
         private string searchText;
@@ -46,7 +47,7 @@ namespace SatisfactorySaveEditor.ViewModel
             get
             {
                 if (saveGame == null) return string.Empty;
-                return string.Format(" - {1} [{0}]", saveGame.FileName, saveGame.Header.SessionName);
+                return string.Format(" - {1} [{0}]", saveGame.Filename, saveGame.Header.SessionName);
             }
         }
 
@@ -191,7 +192,7 @@ namespace SatisfactorySaveEditor.ViewModel
                 SaveFileDialog dialog = new SaveFileDialog
                 {
                     Filter = "Satisfactory save file|*.sav",
-                    InitialDirectory = Path.GetDirectoryName(saveGame.FileName),
+                    InitialDirectory = Path.GetDirectoryName(saveGame.Filename),
                     DefaultExt = ".sav",
                     CheckFileExists = false,
                     AddExtension = true
@@ -200,8 +201,8 @@ namespace SatisfactorySaveEditor.ViewModel
                 if (dialog.ShowDialog() == true)
                 {
                     var newObjects = rootItem.DescendantSelf;
-                    saveGame.Entries = saveGame.Entries.Intersect(newObjects).ToList();
-                    saveGame.Entries.AddRange(newObjects.Except(saveGame.Entries));
+                    saveGame.Objects = saveGame.Objects.Intersect(newObjects).ToList();
+                    saveGame.Objects.AddRange(newObjects.Except(saveGame.Objects));
 
                     rootItem.ApplyChanges();
                     saveGame.Save(dialog.FileName);
@@ -213,8 +214,8 @@ namespace SatisfactorySaveEditor.ViewModel
             else
             {
                 var newObjects = rootItem.DescendantSelf;
-                saveGame.Entries = saveGame.Entries.Intersect(newObjects).ToList();
-                saveGame.Entries.AddRange(newObjects.Except(saveGame.Entries));
+                saveGame.Objects = saveGame.Objects.Intersect(newObjects).ToList();
+                saveGame.Objects.AddRange(newObjects.Except(saveGame.Objects));
 
                 rootItem.ApplyChanges();
                 saveGame.Save();
@@ -319,12 +320,12 @@ namespace SatisfactorySaveEditor.ViewModel
             SelectedItem = null;
             SearchText = null;
 
-            saveGame = new SatisfactorySave(path);
+            saveGame = new FGSaveSession(path);
 
             rootItem = new SaveRootModel(saveGame.Header);
             var saveTree = new EditorTreeNode("Root");
 
-            foreach (var entry in saveGame.Entries)
+            foreach (var entry in saveGame.Objects)
             {
                 var parts = entry.TypePath.TrimStart('/').Split('/');
                 saveTree.AddChild(parts, entry);
@@ -410,7 +411,7 @@ namespace SatisfactorySaveEditor.ViewModel
             else
             {
                 var valueLower = value.ToLower(CultureInfo.InvariantCulture);
-                var filter = rootItem.DescendantSelfViewModel.WithCancellation(tokenSource.Token).Where(vm => vm.Model?.InstanceName.ToLower(CultureInfo.InvariantCulture).Contains(valueLower) ?? false);
+                var filter = rootItem.DescendantSelfViewModel.WithCancellation(tokenSource.Token).Where(vm => vm.Model?.PathName.ToLower(CultureInfo.InvariantCulture).Contains(valueLower) ?? false);
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     RootItem = new ObservableCollection<SaveObjectModel>(filter);

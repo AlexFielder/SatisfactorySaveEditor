@@ -1,6 +1,7 @@
 ﻿using SatisfactorySaveEditor.Model;
 using SatisfactorySaveEditor.ViewModel.Property;
 using SatisfactorySaveParser;
+using SatisfactorySaveParser.Game;
 using SatisfactorySaveParser.PropertyTypes;
 using SatisfactorySaveParser.PropertyTypes.Structs;
 using System.Numerics;
@@ -36,7 +37,7 @@ namespace SatisfactorySaveEditor.Cheats
                 if (!InventoryEmpty(inventoryComponent))
                 {
                     currentStorageID = GetNextStorageID(currentStorageID, rootItem);
-                    SaveComponent newInventory = new SaveComponent(inventoryComponent.TypePath, inventoryComponent.RootObject, $"Persistent_Level:PersistentLevel.BP_Crate_C_{currentStorageID}.inventory")
+                    SaveComponent newInventory = new SaveComponent(inventoryComponent.TypePath, inventoryComponent.LevelName, $"Persistent_Level:PersistentLevel.BP_Crate_C_{currentStorageID}.inventory")
                     {
                         ParentEntityName = $"Persistent_Level:PersistentLevel.BP_Crate_C_{currentStorageID}",
                         DataFields = inventoryComponent.DataFields

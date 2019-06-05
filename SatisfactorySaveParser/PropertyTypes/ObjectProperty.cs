@@ -1,4 +1,5 @@
-﻿using SatisfactorySaveParser.Structures;
+﻿using SatisfactorySaveParser.Game;
+using SatisfactorySaveParser.Structures;
 using System;
 using System.Diagnostics;
 using System.IO;

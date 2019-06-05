@@ -5,48 +5,49 @@ using System.IO;
 using System.Linq;
 
 using NLog;
-using SatisfactorySaveParser.Save;
+
+using SatisfactorySaveParser.Game;
 using SatisfactorySaveParser.Structures;
 
-namespace SatisfactorySaveParser
+namespace SatisfactorySaveParser.Save
 {
     /// <summary>
     ///     SatisfactorySave is the main class for parsing a savegame
     /// </summary>
-    public class SatisfactorySave
+    public class FGSaveSession
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
         /// <summary>
-        ///     Path to save on disk
+        ///     Path to save file on disk
         /// </summary>
-        public string FileName { get; private set; }
+        public string Filename { get; private set; }
 
         /// <summary>
-        ///     Header part of the save containing things like the version and metadata
+        ///     Save header which contains information like the version and map info
         /// </summary>
         public FSaveHeader Header { get; private set; }
 
         /// <summary>
-        ///     Main content of the save game
+        ///     Objects contained within this save
         /// </summary>
-        public List<SaveObject> Entries { get; set; } = new List<SaveObject>();
+        public List<SaveObject> Objects { get; set; } = new List<SaveObject>();
 
         /// <summary>
-        ///     List of object references of all collected objects in the world (Nut/berry bushes, slugs, etc)
+        ///     List of object references of all destroyed/collected objects in the world (nut/berry bushes, slugs, etc)
         /// </summary>
-        public List<ObjectReference> CollectedObjects { get; set; } = new List<ObjectReference>();
+        public List<ObjectReference> DestroyedActors { get; set; } = new List<ObjectReference>();
 
         /// <summary>
         ///     Open a savefile from disk
         /// </summary>
         /// <param name="file">Full path to the .sav file, usually found in %localappdata%/FactoryGame/Saved/SaveGames</param>
-        public SatisfactorySave(string file)
+        public FGSaveSession(string file)
         {
             log.Info($"Opening save file: {file}");
 
-            FileName = Environment.ExpandEnvironmentVariables(file);
-            using (var stream = new FileStream(FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            Filename = Environment.ExpandEnvironmentVariables(file);
+            using (var stream = new FileStream(Filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using (var reader = new BinaryReader(stream))
             {
                 Header = FSaveHeader.Parse(reader);
@@ -55,29 +56,17 @@ namespace SatisfactorySaveParser
                 var totalSaveObjects = reader.ReadUInt32();
                 log.Info($"Save contains {totalSaveObjects} object headers");
 
-                // Saved entities loop
                 for (int i = 0; i < totalSaveObjects; i++)
                 {
-                    var type = reader.ReadInt32();
-                    switch (type)
-                    {
-                        case SaveEntity.TypeID:
-                            Entries.Add(new SaveEntity(reader));
-                            break;
-                        case SaveComponent.TypeID:
-                            Entries.Add(new SaveComponent(reader));
-                            break;
-                        default:
-                            throw new InvalidOperationException($"Unexpected type {type}");
-                    }
+                    Objects.Add(SaveObjectFactory.ParseObject(reader));
                 }
 
                 var totalSaveObjectData = reader.ReadInt32();
                 log.Info($"Save contains {totalSaveObjectData} object data");
-                Trace.Assert(Entries.Count == totalSaveObjects);
-                Trace.Assert(Entries.Count == totalSaveObjectData);
+                Trace.Assert(Objects.Count == totalSaveObjects);
+                Trace.Assert(Objects.Count == totalSaveObjectData);
 
-                for (int i = 0; i < Entries.Count; i++)
+                for (int i = 0; i < Objects.Count; i++)
                 {
                     var len = reader.ReadInt32();
                     var before = reader.BaseStream.Position;
@@ -86,7 +75,7 @@ namespace SatisfactorySaveParser
                     //log.Trace($"Reading {len} bytes @ {before} for {Entries[i].TypePath}");
 #endif
 
-                    Entries[i].ParseData(len, reader);
+                    Objects[i].ParseData(len, reader);
                     var after = reader.BaseStream.Position;
 
                     if (before + len != after)
@@ -99,7 +88,7 @@ namespace SatisfactorySaveParser
                 log.Info($"Save contains {collectedObjectsCount} collected objects");
                 for (int i = 0; i < collectedObjectsCount; i++)
                 {
-                    CollectedObjects.Add(new ObjectReference(reader));
+                    DestroyedActors.Add(new ObjectReference(reader));
                 }
 
                 log.Debug($"Read {reader.BaseStream.Position} of total {reader.BaseStream.Length} bytes");
@@ -109,31 +98,31 @@ namespace SatisfactorySaveParser
 
         public void Save()
         {
-            Save(FileName);
+            Save(Filename);
         }
 
         public void Save(string file)
         {
             log.Info($"Writing save file: {file}");
 
-            FileName = Environment.ExpandEnvironmentVariables(file);
-            using (var stream = new FileStream(FileName, FileMode.OpenOrCreate, FileAccess.Write))
+            Filename = Environment.ExpandEnvironmentVariables(file);
+            using (var stream = new FileStream(Filename, FileMode.OpenOrCreate, FileAccess.Write))
             using (var writer = new BinaryWriter(stream))
             {
                 stream.SetLength(0); // Clear any original content
 
                 Header.Serialize(writer);
 
-                writer.Write(Entries.Count);
+                writer.Write(Objects.Count);
 
-                var entities = Entries.Where(e => e is SaveEntity).ToArray();
+                var entities = Objects.Where(e => e is SaveEntity).ToArray();
                 for (var i = 0; i < entities.Length; i++)
                 {
                     writer.Write(SaveEntity.TypeID);
                     entities[i].SerializeHeader(writer);
                 }
 
-                var components = Entries.Where(e => e is SaveComponent).ToArray();
+                var components = Objects.Where(e => e is SaveComponent).ToArray();
                 for (var i = 0; i < components.Length; i++)
                 {
                     writer.Write(SaveComponent.TypeID);
@@ -167,8 +156,8 @@ namespace SatisfactorySaveParser
                     }
                 }
 
-                writer.Write(CollectedObjects.Count);
-                foreach (var collectedObject in CollectedObjects)
+                writer.Write(DestroyedActors.Count);
+                foreach (var collectedObject in DestroyedActors)
                 {
                     writer.WriteLengthPrefixedString(collectedObject.LevelName);
                     writer.WriteLengthPrefixedString(collectedObject.PathName);

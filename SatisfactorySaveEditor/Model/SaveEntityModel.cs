@@ -1,4 +1,4 @@
-﻿using SatisfactorySaveParser;
+﻿using SatisfactorySaveParser.Game;
 using SatisfactorySaveParser.Structures;
 using System.Numerics;
 

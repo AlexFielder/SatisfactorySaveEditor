@@ -1,4 +1,4 @@
-﻿using SatisfactorySaveParser;
+﻿using SatisfactorySaveParser.Game;
 
 namespace SatisfactorySaveEditor.Model
 {

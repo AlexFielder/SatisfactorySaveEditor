@@ -1,6 +1,7 @@
 ﻿using SatisfactorySaveEditor.Model;
 using SatisfactorySaveEditor.ViewModel.Property;
 using SatisfactorySaveParser;
+using SatisfactorySaveParser.Game;
 using SatisfactorySaveParser.PropertyTypes;
 using SatisfactorySaveParser.PropertyTypes.Structs;
 using SatisfactorySaveParser.Structures;

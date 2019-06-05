@@ -9,7 +9,7 @@ using SatisfactorySaveEditor.Util;
 using SatisfactorySaveEditor.View;
 using SatisfactorySaveEditor.ViewModel;
 using SatisfactorySaveEditor.ViewModel.Property;
-using SatisfactorySaveParser;
+using SatisfactorySaveParser.Game;
 
 namespace SatisfactorySaveEditor.Model
 {
@@ -97,8 +97,8 @@ namespace SatisfactorySaveEditor.Model
         public SaveObjectModel(SaveObject model)
         {
             Model = model;
-            Title = model.InstanceName;
-            RootObject = model.RootObject;
+            Title = model.PathName;
+            RootObject = model.LevelName;
             Type = model.TypePath.Split('/').Last();
 
             Fields = new ObservableCollection<SerializedPropertyViewModel>(Model.DataFields.Select(PropertyViewModelMapper.Convert));
@@ -176,7 +176,7 @@ namespace SatisfactorySaveEditor.Model
             // This is because the named only (pink) nodes aren't actually a valid object in the game
             if (Model == null) return;
 
-            Model.InstanceName = Title;
+            Model.PathName = Title;
 
             var newObjects = Fields.Select(vm => vm.Model).ToList();
             Model.DataFields.RemoveAll(s => !newObjects.Contains(s));

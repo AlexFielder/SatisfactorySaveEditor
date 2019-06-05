@@ -1,4 +1,6 @@
-﻿namespace SatisfactorySaveParser.Structures
+﻿using SatisfactorySaveParser.Game;
+
+namespace SatisfactorySaveParser.Structures
 {
     public interface IObjectReference
     {
