@@ -102,6 +102,7 @@ namespace SatisfactorySaveEditor.ViewModel
             CheatMenuItems.Add(new MassDismantleCheat());
             CheatMenuItems.Add(new NoCostCheat());
             CheatMenuItems.Add(new NoPowerCheat());
+            CheatMenuItems.Add(new PlaceBeaconsCheat());
 
             TreeSelectCommand = new RelayCommand<SaveObjectModel>(SelectNode);
             JumpCommand = new RelayCommand<string>(Jump, CanJump);
