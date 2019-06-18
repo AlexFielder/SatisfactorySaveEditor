@@ -27,6 +27,9 @@
 <TypeTooltip xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Type="Root" Tooltip="Main object containing all save data">
 	<TypeTooltip Type="Game" Tooltip="Contains the FactoryGame tag and nothing else">
 		<TypeTooltip Type="FactoryGame" Tooltip="Contains multiple persistent objects such as story progress, Paleberry bush locations, the game time manager, etc.">
+      <TypeTooltip Type="DropPod" Tooltip="Drop pod typically containing a blueprint for a new recipe, or alternate recipe">
+        <TypeTooltip Type="BP_DropPod.BP_DropPod_C" Tooltip="Will likely contain a blueprint the user doesn't already own" />
+      </TypeTooltip>
 			<TypeTooltip Type="Equipment" Tooltip="Contains data about equipment such as placed beacons, portable miners, chainsaws, destructible rocks, etc.\nEach tool that exists in the save contains its own tag here, regardless of its location (storage box, equipped, dropped in world)" />
 			<TypeTooltip Type="-Shared" Tooltip="Contains Blueprints (see blueprint tag for more info) and Personal Storage Box inventories">
 				<TypeTooltip Type="Blueprint" Tooltip="Contains single-instance systems such as non-standard Color Gun color choices, the Game State tracker, in-game time tracking, etc.">
