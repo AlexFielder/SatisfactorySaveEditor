@@ -44,9 +44,27 @@ namespace SatisfactorySaveEditor.Cheats
             if (existingBeacons == null) return false;
             foreach (SaveObject dropPod in dropPods)
             {
-                SaveObject newBeacon = new SaveObject("","","");
-                newBeacon.Position.X = "";
-                existingBeacons.Add(newBeacon);
+                //copy this?
+                //SaveEntity doggo = new SaveEntity("/Game/FactoryGame/Character/Creature/Wildlife/SpaceRabbit/Char_SpaceRabbit.Char_SpaceRabbit_C", "Persistent_Level", $"Persistent_Level:PersistentLevel.Char_SpaceRabbit_C_{currentDoggoID}")
+                //{
+                //    NeedTransform = true,
+                //    Rotation = ((SaveEntity)player.Model).Rotation,
+                //    Position = new Vector3()
+                //    {
+                //        X = ((SaveEntity)player.Model).Position.X,
+                //        Y = ((SaveEntity)player.Model).Position.Y + 100 + 10 * currentDoggoID, // so they don't glitch one into another like the tractors did
+                //        Z = ((SaveEntity)player.Model).Position.Z + 10
+                //    },
+                //    Scale = new Vector3() { X = 1, Y = 1, Z = 1 },
+                //    WasPlacedInLevel = false,
+                //    ParentObjectName = "",
+                //    ParentObjectRoot = ""
+                //};
+
+                //SaveObject newBeacon = new SaveObject("","","");
+                //newBeacon.Position.X = "";
+                //existingBeacons.Add(newBeacon);
+                
                 //if (dropPod.InstanceName.Contains("389")) Debugger.Break();
                 //if (!dropbox.DataFields.Contains("AlreadyOpenedOrWhatever"))
                 //{
