@@ -47,7 +47,7 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
-                <MenuItem Header="_Open" InputGestureText="Ctrl+O" Command="{Binding OpenCommand}"/>
+                <MenuItem Header="_Open..." InputGestureText="Ctrl+O" Command="{Binding OpenCommand}"/>
                 <MenuItem Header="Open recent" ItemsSource="{Binding LastFiles}" Command="{Binding OpenCommand}">
                     <MenuItem.ItemContainerStyle>
                         <Style TargetType="{x:Type MenuItem}">
@@ -62,9 +62,20 @@
                         <sys:Boolean>False</sys:Boolean>
                     </MenuItem.CommandParameter>
                 </MenuItem>
-                <MenuItem Header="_Save as" InputGestureText="F12" Command="{Binding SaveCommand}">
+                <MenuItem Header="_Save as..." InputGestureText="F12" Command="{Binding SaveCommand}">
                     <MenuItem.CommandParameter>
                         <sys:Boolean>True</sys:Boolean>
+                    </MenuItem.CommandParameter>
+                </MenuItem>
+                <MenuItem Header="_Create backup" Command="{Binding ManualBackupCommand}">
+                    <MenuItem.CommandParameter>
+                        <sys:Boolean>True</sys:Boolean>
+                    </MenuItem.CommandParameter>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Jump to tag..." InputGestureText="Ctrl+J" Command="{Binding JumpMenuCommand}">
+                    <MenuItem.CommandParameter>
+                        <sys:Boolean>False</sys:Boolean>
                     </MenuItem.CommandParameter>
                 </MenuItem>
                 <Separator/>
@@ -81,10 +92,13 @@
                 </MenuItem.ItemContainerStyle>
             </MenuItem>
             <MenuItem Header="_Help">
+                <MenuItem Header="View guides on ficsit.app" Command="{Binding Help_FicsitAppGuideCommand}"/>
+                <MenuItem Header="Request help on Discord" Command="{Binding Help_RequestHelpDiscordCommand}"/>
+                <Separator/>
                 <MenuItem Header="View on GitHub" Command="{Binding Help_ViewGithubCommand}"/>
                 <MenuItem Header="Report an Issue" Command="{Binding Help_ReportIssueCommand}"/>
-                <MenuItem Header="Request help on Discord" Command="{Binding Help_RequestHelpDiscordCommand}"/>
                 <MenuItem Header="Check for updates" Command="{Binding CheckUpdatesCommand}"/>
+                <Separator/>
                 <MenuItem Header="About" Command="{Binding AboutCommand}"/>
             </MenuItem>
         </Menu>
